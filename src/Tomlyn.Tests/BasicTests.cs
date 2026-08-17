@@ -81,6 +81,18 @@ value = true
         }
 
         [Test]
+        public void TestIntegerOverflowIsRejected()
+        {
+            // TOML requires an error when an integer cannot be represented as a
+            // signed 64-bit value; a positive literal in [2^63, 2^64-1] must not
+            // silently wrap to a negative long.
+            Assert.IsFalse(SyntaxParser.Parse("a = 9223372036854775807").HasErrors);  // long.MaxValue
+            Assert.IsFalse(SyntaxParser.Parse("a = -9223372036854775808").HasErrors); // long.MinValue
+            Assert.IsTrue(SyntaxParser.Parse("a = 9223372036854775808").HasErrors);   // 2^63
+            Assert.IsTrue(SyntaxParser.Parse("a = 18446744073709551615").HasErrors);  // 2^64-1
+        }
+
+        [Test]
         public void SimpleTest()
         {
             var test = @"[table-1]

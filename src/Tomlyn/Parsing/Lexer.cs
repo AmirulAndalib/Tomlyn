@@ -1054,6 +1054,15 @@ namespace Tomlyn.Parsing
                 return true;
             }
 
+            // A positive magnitude above long.MaxValue does not fit a signed 64-bit
+            // integer; the negative branch already rejects its counterpart. Without
+            // this, values in [2^63, 2^64-1] wrap to a negative long (TOML requires
+            // an error when an integer cannot be represented losslessly).
+            if (accumulator > long.MaxValue)
+            {
+                return false;
+            }
+
             value = unchecked((long)accumulator);
             return true;
         }
